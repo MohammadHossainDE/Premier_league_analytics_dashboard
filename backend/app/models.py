@@ -1,8 +1,10 @@
 
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, UniqueConstraint
-from sqlalchemy.orm import relationship
 from datetime import datetime
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy.orm import relationship
+
 from app.database import Base
 
 try:
@@ -19,6 +21,7 @@ def sweden_now():
 
     return datetime.now(STOCKHOLM_TZ).replace(tzinfo=None)
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -27,7 +30,10 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False, default="")
 
-    favorite_teams = relationship("FavoriteTeam", back_populates="user", cascade="all, delete")
+    favorite_teams = relationship(
+        "FavoriteTeam", back_populates="user", cascade="all, delete"
+    )
+
 
 class FavoriteTeam(Base):
     __tablename__ = "favorite_teams"
@@ -43,13 +49,14 @@ class FavoriteTeam(Base):
     won = Column(Integer, default=0)
     draw = Column(Integer, default=0)
     lost = Column(Integer, default=0)
-    #note = Column(String, nullable=True)
-
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     user = relationship("User", back_populates="favorite_teams")
     notes = relationship("Note", back_populates="favorite_team", cascade="all, delete")
-    snapshots = relationship("TeamSnapshot", back_populates="favorite_team", cascade="all, delete") 
+    snapshots = relationship(
+        "TeamSnapshot", back_populates="favorite_team", cascade="all, delete"
+    )
+
 
 class Note(Base):
     __tablename__ = "notes"
@@ -66,18 +73,8 @@ class Note(Base):
 class TeamSnapshot(Base):
     __tablename__ = "team_snapshots"
 
-    """id = Column(Integer, primary_key=True, index=True)
-    team_name = Column(String, nullable=False)
-    points = Column(Integer, default=0)
-    played = Column(Integer, default=0)
-    won = Column(Integer, default=0)
-    draw = Column(Integer, default=0)
-    lost = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.utcnow)"""
-
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    #team_id = Column(Integer, nullable=False)
     team_name = Column(String, nullable=False)
     points = Column(Integer, default=0)
     played = Column(Integer, default=0)
