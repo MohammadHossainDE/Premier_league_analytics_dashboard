@@ -1,68 +1,5 @@
-""" 
 from sqlalchemy.orm import Session
-from app import models
-from app import schemas
 
-
-def get_favorite_by_team_id(db: Session, team_id: int):
-    return db.query(models.FavoriteTeam).filter(
-        models.FavoriteTeam.team_id == team_id
-    ).first()
-
-
-def create_favorite(db: Session, favorite: schemas.FavoriteCreate):
-    db_favorite = models.FavoriteTeam(
-        team_id=favorite.team_id,
-        team_name=favorite.team_name,
-        points=favorite.points,
-        played=favorite.played,
-        won=favorite.won,
-        draw=favorite.draw,
-        lost=favorite.lost
-    )
-    db.add(db_favorite)
-    db.commit()
-    db.refresh(db_favorite)
-    return db_favorite
-
-
-def get_favorites(db: Session):
-    return db.query(models.FavoriteTeam).all()
-
-
-def get_favorite_by_id(db: Session, favorite_id: int):
-    return db.query(models.FavoriteTeam).filter(
-        models.FavoriteTeam.id == favorite_id
-    ).first()
-
-
-def delete_favorite(db: Session, favorite_id: int):
-    favorite = db.query(models.FavoriteTeam).filter(
-        models.FavoriteTeam.id == favorite_id
-    ).first()
-
-    if not favorite:
-        return None
-
-    db.delete(favorite)
-    db.commit()
-    return favorite
-
-
-def update_note(db: Session, favorite_id: int, note: str):
-    favorite = db.query(models.FavoriteTeam).filter(
-        models.FavoriteTeam.id == favorite_id
-    ).first()
-
-    if not favorite:
-        return None
-
-    favorite.note = note
-    db.commit()
-    db.refresh(favorite)
-    return favorite """ 
-
-from sqlalchemy.orm import Session
 from app import models, schemas
 
 
@@ -73,7 +10,7 @@ def create_user(db: Session, user: schemas.UserCreate, hashed_password: str):
     db_user = models.User(
         username=user.username,
         email=user.email,
-        hashed_password=hashed_password
+        hashed_password=hashed_password,
     )
     db.add(db_user)
     db.commit()
@@ -86,21 +23,15 @@ def get_users(db: Session):
 
 
 def get_user_by_id(db: Session, user_id: int):
-    return db.query(models.User).filter(
-        models.User.id == user_id
-    ).first()
+    return db.query(models.User).filter(models.User.id == user_id).first()
 
 
 def get_user_by_email(db: Session, email: str):
-    return db.query(models.User).filter(
-        models.User.email == email
-    ).first()
+    return db.query(models.User).filter(models.User.email == email).first()
 
 
 def get_user_by_username(db: Session, username: str):
-    return db.query(models.User).filter(
-        models.User.username == username
-    ).first()
+    return db.query(models.User).filter(models.User.username == username).first()
 
 
 def get_user_by_username_or_email(db: Session, identifier: str):
@@ -118,7 +49,7 @@ def get_or_create_default_user(db: Session):
 
     db_user = models.User(
         username="demo_user",
-        email=default_email
+        email=default_email,
     )
     db.add(db_user)
     db.commit()
@@ -129,15 +60,12 @@ def get_or_create_default_user(db: Session):
 # -------------------------
 # Favorite Team CRUD
 # -------------------------
-""" def get_favorite_by_team_id(db: Session, team_id: int):
-    return db.query(models.FavoriteTeam).filter(
-        models.FavoriteTeam.team_id == team_id
-    ).first() """
 def get_favorite_by_team_id_and_user(db: Session, team_id: int, user_id: int):
     return db.query(models.FavoriteTeam).filter(
         models.FavoriteTeam.team_id == team_id,
-        models.FavoriteTeam.user_id == user_id
+        models.FavoriteTeam.user_id == user_id,
     ).first()
+
 
 def get_favorite_by_id(db: Session, favorite_id: int):
     return db.query(models.FavoriteTeam).filter(
@@ -148,15 +76,11 @@ def get_favorite_by_id(db: Session, favorite_id: int):
 def get_favorite_by_id_and_user(db: Session, favorite_id: int, user_id: int):
     return db.query(models.FavoriteTeam).filter(
         models.FavoriteTeam.id == favorite_id,
-        models.FavoriteTeam.user_id == user_id
+        models.FavoriteTeam.user_id == user_id,
     ).first()
 
 
 def get_favorites(db: Session):
-    return db.query(models.FavoriteTeam).all()
-
-
-def get_all_favorites(db: Session):
     return db.query(models.FavoriteTeam).all()
 
 
@@ -175,7 +99,7 @@ def create_favorite(db: Session, favorite: schemas.FavoriteCreate):
         won=favorite.won,
         draw=favorite.draw,
         lost=favorite.lost,
-        user_id=favorite.user_id
+        user_id=favorite.user_id,
     )
     db.add(db_favorite)
     db.commit()
@@ -184,10 +108,7 @@ def create_favorite(db: Session, favorite: schemas.FavoriteCreate):
 
 
 def delete_favorite(db: Session, favorite_id: int):
-    favorite = db.query(models.FavoriteTeam).filter(
-        models.FavoriteTeam.id == favorite_id
-    ).first()
-
+    favorite = get_favorite_by_id(db, favorite_id)
     if not favorite:
         return None
 
@@ -198,7 +119,6 @@ def delete_favorite(db: Session, favorite_id: int):
 
 def delete_favorite_for_user(db: Session, favorite_id: int, user_id: int):
     favorite = get_favorite_by_id_and_user(db, favorite_id, user_id)
-
     if not favorite:
         return None
 
@@ -217,7 +137,24 @@ def create_note(db: Session, favorite_team_id: int, note: schemas.NoteCreate):
 
     db_note = models.Note(
         content=note.content,
-        favorite_team_id=favorite_team_id
+        favorite_team_id=favorite_team_id,
+    )
+    db.add(db_note)
+    db.commit()
+    db.refresh(db_note)
+    return db_note
+
+
+def create_note_for_user(
+    db: Session, favorite_team_id: int, user_id: int, note: schemas.NoteCreate
+):
+    favorite = get_favorite_by_id_and_user(db, favorite_team_id, user_id)
+    if not favorite:
+        return None
+
+    db_note = models.Note(
+        content=note.content,
+        favorite_team_id=favorite_team_id,
     )
     db.add(db_note)
     db.commit()
@@ -236,15 +173,11 @@ def get_notes_by_favorite_and_user(db: Session, favorite_team_id: int, user_id: 
     if not favorite:
         return None
 
-    return db.query(models.Note).filter(
-        models.Note.favorite_team_id == favorite_team_id
-    ).all()
+    return get_notes_by_favorite(db, favorite_team_id)
 
 
 def get_note_by_id(db: Session, note_id: int):
-    return db.query(models.Note).filter(
-        models.Note.id == note_id
-    ).first()
+    return db.query(models.Note).filter(models.Note.id == note_id).first()
 
 
 def get_note_by_id_and_user(db: Session, note_id: int, user_id: int):
@@ -253,43 +186,24 @@ def get_note_by_id_and_user(db: Session, note_id: int, user_id: int):
         .join(models.FavoriteTeam, models.Note.favorite_team_id == models.FavoriteTeam.id)
         .filter(
             models.Note.id == note_id,
-            models.FavoriteTeam.user_id == user_id
+            models.FavoriteTeam.user_id == user_id,
         )
         .first()
     )
 
 
 def delete_note(db: Session, note_id: int):
-    note = db.query(models.Note).filter(
-        models.Note.id == note_id
-    ).first()
-
+    note = get_note_by_id(db, note_id)
     if not note:
         return None
 
     db.delete(note)
     db.commit()
     return note
-
-
-def create_note_for_user(db: Session, favorite_team_id: int, user_id: int, note: schemas.NoteCreate):
-    favorite = get_favorite_by_id_and_user(db, favorite_team_id, user_id)
-    if not favorite:
-        return None
-
-    db_note = models.Note(
-        content=note.content,
-        favorite_team_id=favorite_team_id
-    )
-    db.add(db_note)
-    db.commit()
-    db.refresh(db_note)
-    return db_note
 
 
 def delete_note_for_user(db: Session, note_id: int, user_id: int):
     note = get_note_by_id_and_user(db, note_id, user_id)
-
     if not note:
         return None
 
@@ -298,9 +212,10 @@ def delete_note_for_user(db: Session, note_id: int, user_id: int):
     return note
 
 
-def update_note_for_user(db: Session, note_id: int, user_id: int, note: schemas.NoteUpdate):
+def update_note_for_user(
+    db: Session, note_id: int, user_id: int, note: schemas.NoteUpdate
+):
     db_note = get_note_by_id_and_user(db, note_id, user_id)
-
     if not db_note:
         return None
 
@@ -316,7 +231,7 @@ def update_note_for_user(db: Session, note_id: int, user_id: int, note: schemas.
 def create_snapshot(
     db: Session,
     favorite_team_id: int,
-    snapshot: schemas.TeamSnapshotCreate
+    snapshot: schemas.TeamSnapshotCreate,
 ):
     favorite = get_favorite_by_id(db, favorite_team_id)
     if not favorite:
@@ -330,7 +245,33 @@ def create_snapshot(
         won=snapshot.won,
         draw=snapshot.draw,
         lost=snapshot.lost,
-        favorite_team_id=favorite_team_id
+        favorite_team_id=favorite_team_id,
+    )
+    db.add(db_snapshot)
+    db.commit()
+    db.refresh(db_snapshot)
+    return db_snapshot
+
+
+def create_snapshot_for_user(
+    db: Session,
+    favorite_team_id: int,
+    user_id: int,
+    snapshot: schemas.TeamSnapshotCreate,
+):
+    favorite = get_favorite_by_id_and_user(db, favorite_team_id, user_id)
+    if not favorite:
+        return None
+
+    db_snapshot = models.TeamSnapshot(
+        user_id=user_id,
+        team_name=snapshot.team_name,
+        points=snapshot.points,
+        played=snapshot.played,
+        won=snapshot.won,
+        draw=snapshot.draw,
+        lost=snapshot.lost,
+        favorite_team_id=favorite_team_id,
     )
     db.add(db_snapshot)
     db.commit()
@@ -344,14 +285,19 @@ def get_snapshots_by_favorite(db: Session, favorite_team_id: int):
     ).all()
 
 
-def get_snapshots_by_favorite_and_user(db: Session, favorite_team_id: int, user_id: int):
+def get_snapshots_by_favorite_and_user(
+    db: Session, favorite_team_id: int, user_id: int
+):
     favorite = get_favorite_by_id_and_user(db, favorite_team_id, user_id)
     if not favorite:
         return None
 
-    return db.query(models.TeamSnapshot).filter(
-        models.TeamSnapshot.favorite_team_id == favorite_team_id
-    ).order_by(models.TeamSnapshot.created_at.desc()).all()
+    return (
+        db.query(models.TeamSnapshot)
+        .filter(models.TeamSnapshot.favorite_team_id == favorite_team_id)
+        .order_by(models.TeamSnapshot.created_at.desc())
+        .all()
+    )
 
 
 def get_snapshot_by_id(db: Session, snapshot_id: int):
@@ -374,21 +320,18 @@ def get_snapshot_by_id_and_user(db: Session, snapshot_id: int, user_id: int):
         db.query(models.TeamSnapshot)
         .join(
             models.FavoriteTeam,
-            models.TeamSnapshot.favorite_team_id == models.FavoriteTeam.id
+            models.TeamSnapshot.favorite_team_id == models.FavoriteTeam.id,
         )
         .filter(
             models.TeamSnapshot.id == snapshot_id,
-            models.FavoriteTeam.user_id == user_id
+            models.FavoriteTeam.user_id == user_id,
         )
         .first()
     )
 
 
 def delete_snapshot(db: Session, snapshot_id: int):
-    snapshot = db.query(models.TeamSnapshot).filter(
-        models.TeamSnapshot.id == snapshot_id
-    ).first()
-
+    snapshot = get_snapshot_by_id(db, snapshot_id)
     if not snapshot:
         return None
 
@@ -397,36 +340,10 @@ def delete_snapshot(db: Session, snapshot_id: int):
     return snapshot
 
 
-def create_snapshot_for_user(
-    db: Session,
-    favorite_team_id: int,
-    user_id: int,
-    snapshot: schemas.TeamSnapshotCreate
-):
-    favorite = get_favorite_by_id_and_user(db, favorite_team_id, user_id)
-    if not favorite:
-        return None
-
-    db_snapshot = models.TeamSnapshot(
-        user_id=user_id,
-        team_name=snapshot.team_name,
-        points=snapshot.points,
-        played=snapshot.played,
-        won=snapshot.won,
-        draw=snapshot.draw,
-        lost=snapshot.lost,
-        favorite_team_id=favorite_team_id
-    )
-    db.add(db_snapshot)
-    db.commit()
-    db.refresh(db_snapshot)
-    return db_snapshot
-
-
 def create_snapshot_if_changed(
     db: Session,
     favorite: models.FavoriteTeam,
-    snapshot: schemas.TeamSnapshotCreate
+    snapshot: schemas.TeamSnapshotCreate,
 ):
     latest = get_latest_snapshot_for_favorite(db, favorite.id)
     if latest and all(
@@ -449,7 +366,7 @@ def create_snapshot_if_changed(
         won=snapshot.won,
         draw=snapshot.draw,
         lost=snapshot.lost,
-        favorite_team_id=favorite.id
+        favorite_team_id=favorite.id,
     )
     db.add(db_snapshot)
     db.commit()
@@ -459,7 +376,6 @@ def create_snapshot_if_changed(
 
 def delete_snapshot_for_user(db: Session, snapshot_id: int, user_id: int):
     snapshot = get_snapshot_by_id_and_user(db, snapshot_id, user_id)
-
     if not snapshot:
         return None
 
