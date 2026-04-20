@@ -1,37 +1,8 @@
 
-"""
-from pydantic import BaseModel
-from typing import Optional
-
-
-class FavoriteBase(BaseModel):
-    team_id: int
-    team_name: str
-    points: int
-    played: int
-    won: int
-    draw: int
-    lost: int
-
-
-class FavoriteCreate(FavoriteBase):
-    pass
-
-
-class Favorite(FavoriteBase):
-    id: int
-    note: Optional[str] = None
-
-    class Config:
-        from_attributes = True
-
-
-class NoteUpdate(BaseModel):
-    note: str"""
-
-from pydantic import BaseModel
-from typing import List, Optional
 from datetime import datetime
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # --------------------
@@ -62,9 +33,7 @@ class TokenData(BaseModel):
 
 class User(UserBase):
     id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # --------------------
@@ -86,9 +55,7 @@ class Note(NoteBase):
     id: int
     created_at: datetime
     favorite_team_id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # --------------------
@@ -111,9 +78,7 @@ class TeamSnapshot(TeamSnapshotBase):
     id: int
     created_at: datetime
     favorite_team_id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # --------------------
@@ -136,8 +101,6 @@ class FavoriteCreate(FavoriteBase):
 class Favorite(FavoriteBase):
     id: int
     user_id: int
-    notes: List[Note] = []
-    snapshots: List[TeamSnapshot] = []
-
-    class Config:
-        from_attributes = True
+    notes: List[Note] = Field(default_factory=list)
+    snapshots: List[TeamSnapshot] = Field(default_factory=list)
+    model_config = ConfigDict(from_attributes=True)
